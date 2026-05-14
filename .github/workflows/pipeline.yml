@@ -22,8 +22,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: 4. Executar teste de alucinação do prompt (Gemini)
+    - name: 4. Executar testes de seguranca (visao e Gemini)
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        PYTHONPATH: .
       run: |
-        pytest tests/teste_visao.py -v --log-cli-level=INFO
+        pytest tests/ -v --log-cli-level=INFO
