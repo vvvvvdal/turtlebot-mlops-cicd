@@ -82,11 +82,11 @@ class MLOpsTurtlebotNode(Node):
                     self.get_logger().warning('Visao mandou PARAR. Seguranca ativada.')
                     self.comando_atual = "PARAR"
                 else:
-                    # 2. Visao liberou, agora pergunta ao LLM Gemini
-                    self.get_logger().info(f'Visao ok. Consultando Gemini (distancia={self.distancia_frente:.2f}m)...')
+                    # 2. Visao liberou, agora pergunta ao LLM Local (Ollama)
+                    self.get_logger().info(f'Visao ok. Consultando Ollama (distancia={self.distancia_frente:.2f}m)...')
                     decisao_llm = decidir_movimento(round(self.distancia_frente, 2))
                     
-                    self.get_logger().info(f'Gemini decidiu: {decisao_llm}')
+                    self.get_logger().info(f'Ollama decidiu: {decisao_llm}')
                     self.comando_atual = decisao_llm
             except Exception as e:
                 self.get_logger().error(f'Erro na tomada de decisao: {e}')

@@ -10,6 +10,7 @@ Criamos uma esteira de **Integração Contínua (CI/CD)**. Antes de qualquer có
 
 ## 💻 Como testar
 
+### Testando no terminal:
 1. Instale as dependências necessárias:
 ```bash
 pip install -r requirements.txt
@@ -18,4 +19,10 @@ pip install -r requirements.txt
 2. Rode a bateria de testes de segurança com o Pytest:
 ```bash
 pytest tests/ -v --log-cli-level=INFO
+```
+
+### Testando na simulação visual com HTML:
+1. Abra o arquivo `simulacao_mapa.html` no seu navegador:
+```bash
+xdg-open simulacao_mapa.html
 ```

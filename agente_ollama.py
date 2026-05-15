@@ -32,7 +32,7 @@ def decidir_movimento(distancia_obstaculo):
             }
         )
         decisao = response['message']['content'].strip().upper()
-        logger.info(f"Resposta RAW do modelo: {decisao}") # As vezes ele pode responder com frases como "Decisão: PARAR" ou "Decisão: AVANCAR", por isso precisamos fazer o tratamento abaixo.
+        logger.info(f"Resposta crua do modelo: {decisao}") # As vezes ele pode responder com frases como "Decisão: PARAR" ou "Decisão: AVANCAR", por isso precisamos fazer o tratamento abaixo.
         
         if "PARAR" in decisao: decisao = "PARAR"
         elif "AVANCAR" in decisao: decisao = "AVANCAR"
