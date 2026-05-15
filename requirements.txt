@@ -1,5 +1,5 @@
 pytest==8.1.1
 opencv-python-headless==4.9.0.80
 numpy==1.26.4
-google-generativeai
+google-genai
 python-dotenv

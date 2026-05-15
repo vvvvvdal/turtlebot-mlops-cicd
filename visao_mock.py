@@ -32,10 +32,18 @@ def detectar_obstaculo(caminho_imagem):
         with open(arquivo_pesos, 'r') as f:
             pesos_atuais = f.read().strip()
             
-            # Se você alterar o arquivo para "pesos_ruins" ao vivo, a precisao cai
-            if pesos_atuais == "pesos_ruins":
-                grau_confianca = 0.35  # Simula um modelo degradado/cego
-                logger.warning("ALERTA: O modelo carregou com pesos corrompidos ou degradados.")
+            # Tenta converter o valor lido para float
+            try:
+                valor_peso = int(pesos_atuais)
+
+                # Se o peso for menor que 8, a precisao cai
+                if valor_peso < 8:
+                    grau_confianca = 0.35  # Simula um modelo degradado/cego
+                    logger.warning(f"ALERTA: O modelo carregou com pesos corrompidos ou degradados (peso atual: {valor_peso}).")
+            except ValueError:
+                logger.error(f"Erro: O arquivo de pesos contém um valor inválido que não é um número inteiro: '{pesos_atuais}'")
+                grau_confianca = 0.35 # Assume falha de seguranca se o formato estiver errado
+
     else:
         logger.warning(f"Arquivo '{arquivo_pesos}' nao encontrado. Operando com confianca padrao.")
     
@@ -45,8 +53,8 @@ def detectar_obstaculo(caminho_imagem):
     # Lógica de navegação baseada na visão
     acao_recomendada = "PARAR" if grau_confianca >= 0.80 else "AVANCAR"
     
-    if acao_recomendada == "PARAR": logger.info("Comando de navegação enviado: PARAR (Obstáculo perto).")
-    else: logger.error("Comando de navegação enviado: AVANÇAR (Risco extremo de colisso fisica!).")
+    if acao_recomendada == "PARAR": logger.info("Comando de navegação enviado: PARAR (obstaculo perto).")
+    else: logger.error("Comando de navegação enviado: AVANÇAR (risco extremo de colisao fisica).")
     
     return {
         "classe_objeto": "parede",
