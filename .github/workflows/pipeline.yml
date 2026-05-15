@@ -1,4 +1,4 @@
-name: Turtlebot (IA - MLOps - CI/CD)
+name: Turtlebot (MLOps - CI/CD)
 
 on:
   push:
