@@ -22,7 +22,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: 4. Executar testes de seguranca (visao e Ollama)
+    - name: 4. Instalar e Iniciar o Ollama
+      run: |
+        curl -fsSL https://ollama.com/install.sh | sh
+        ollama serve &
+        sleep 5
+        ollama pull qwen2.5:1.5b
+
+    - name: 5. Executar testes de seguranca (visao e Ollama)
       env:
         PYTHONPATH: .
       run: |
