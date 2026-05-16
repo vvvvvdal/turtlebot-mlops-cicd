@@ -25,4 +25,4 @@ RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 COPY . .
 
 # Simula a inicialização do nó de visão do robô
-CMD ["python3", "visao_mock.py"]
+CMD ["python3", "src/visao_mock.py"]

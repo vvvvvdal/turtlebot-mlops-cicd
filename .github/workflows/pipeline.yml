@@ -31,6 +31,6 @@ jobs:
 
     - name: 5. Executar testes de seguranca (visao e Ollama)
       env:
-        PYTHONPATH: .
+        PYTHONPATH: src
       run: |
         pytest tests/ -v --log-cli-level=INFO
