@@ -10,6 +10,9 @@ import math
 from agente_ollama import decidir_movimento
 from visao_mock import detectar_obstaculo
 
+VELOCIDADE_PADRAO = 0.15
+VELOCIDADE_NULA = 0.0
+
 class MLOpsTurtlebotNode(Node):
     def __init__(self):
         super().__init__('mlops_turtlebot_node')
@@ -49,7 +52,7 @@ class MLOpsTurtlebotNode(Node):
         if num_leituras == 0:
             return
             
-        # Pega as leituras na frente (cone de ~30 graus: 15 graus pra cada lado do indice 0)
+        # Pega as leituras na frente (cone de 30 graus: 15 graus pra cada lado do indice 0)
         ang_index_esq = 15
         ang_index_dir = num_leituras - 15
         
@@ -68,7 +71,7 @@ class MLOpsTurtlebotNode(Node):
             self.distancia_frente = 10.0 # Sem obstaculo
             
     def loop_de_decisao_ia(self):
-        """ Loop rodando numa thread separada a cada 3 segundos """
+        """ Rodando loop a cada 3 segundos """
         # Espera o ROS 2 iniciar corretamente antes da primeira chamada
         time.sleep(2.0)
         
@@ -99,11 +102,11 @@ class MLOpsTurtlebotNode(Node):
         twist = Twist()
         
         if self.comando_atual == "AVANCAR":
-            twist.linear.x = 0.15 # 15 cm/s
-            twist.angular.z = 0.0
+            twist.linear.x = VELOCIDADE_PADRAO # 15 cm/s
+            twist.angular.z = VELOCIDADE_NULA
         else:
-            twist.linear.x = 0.0
-            twist.angular.z = 0.0
+            twist.linear.x = VELOCIDADE_NULA
+            twist.angular.z = VELOCIDADE_NULA
             
         self.cmd_vel_pub.publish(twist)
 

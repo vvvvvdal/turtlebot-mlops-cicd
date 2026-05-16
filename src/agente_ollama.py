@@ -1,6 +1,9 @@
 import ollama
 import logging
 
+DISTANCIA_PERTO = 0.5
+DISTANCIA_SEGURA = 1.0
+
 # Configuracoes do modelo
 INSTRUCAO_SISTEMA = "Você é um robô. Regra de Segurança: Se a distância for MAIOR que 100 centímetros, responda APENAS 'AVANCAR'. Se a distância for MENOR OU IGUAL a 100 centímetros, responda APENAS 'PARAR'."
 CONFIG_MODELO = {
@@ -8,16 +11,16 @@ CONFIG_MODELO = {
     "top_p": 1.0,
 }
 
-# Logs da IA Local
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - [IA-LOCAL] - %(levelname)s - %(message)s')
+# Logs do Ollama
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - [Ollama] - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 def decidir_movimento(distancia_obstaculo):
     """
-    Recebe a distancia do sensor LiDAR e consulta o modelo local (Ollama) para decidir a acao.
+    Recebe a distancia do sensor LiDAR e consulta o Ollama para decidir a acao.
     """
     logger.info(f"Leitura do LiDAR: Obstaculo detectado a {distancia_obstaculo}m.")
-    estado_risco = "PERIGOSA" if distancia_obstaculo <= 1.0 else "SEGURA"
+    estado_risco = "PERIGOSA" if distancia_obstaculo <= DISTANCIA_SEGURA else "SEGURA" # 1.0 metro
     prompt_completo = f"Situação: {estado_risco}.\nRegra: Se a situação for PERIGOSA, responda PARAR. Se for SEGURA, responda AVANCAR.\nDecisão:"
     
     try:
@@ -46,5 +49,5 @@ def decidir_movimento(distancia_obstaculo):
 if __name__ == "__main__":
     # Teste rapido manual
     print("Testando Turtlebot autonomo:")
-    distancia = 0.5 # Simulando obstaculo perto
+    distancia = DISTANCIA_PERTO # Simulando obstaculo perto (0.5 metros)
     print(f"Decisao final para {distancia}m: {decidir_movimento(distancia)}")

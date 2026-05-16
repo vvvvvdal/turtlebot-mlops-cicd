@@ -2,6 +2,9 @@ import cv2
 import os
 import logging
 
+CONFIANCA_BAIXA = 0.35
+CONFIANCA_EXCELENTE = 0.95
+
 # Logger para no de visao
 logging.basicConfig(
     level=logging.INFO,
@@ -26,7 +29,7 @@ def detectar_obstaculo(caminho_imagem):
     
     # Simulacao:
     arquivo_pesos = "pesos_modelo.txt"
-    grau_confianca = 0.95  # Padrao: modelo excelente (95% de certeza)
+    grau_confianca = CONFIANCA_EXCELENTE  # Padrao: modelo excelente (95% de certeza)
     
     if os.path.exists(arquivo_pesos):
         with open(arquivo_pesos, 'r') as f:
@@ -38,11 +41,11 @@ def detectar_obstaculo(caminho_imagem):
 
                 # Se o peso for menor que 8, a precisao cai
                 if valor_peso < 8:
-                    grau_confianca = 0.35  # Simula um modelo degradado/cego
+                    grau_confianca = CONFIANCA_BAIXA  # Simula um modelo degradado/cego (35% de certeza)
                     logger.warning(f"ALERTA: O modelo carregou com pesos corrompidos ou degradados (peso atual: {valor_peso}).")
             except ValueError:
                 logger.error(f"Erro: O arquivo de pesos contém um valor inválido que não é um número inteiro: '{pesos_atuais}'")
-                grau_confianca = 0.35 # Assume falha de seguranca se o formato estiver errado
+                grau_confianca = CONFIANCA_BAIXA # Assume falha de seguranca se o formato estiver errado (35% de certeza)
 
     else:
         logger.warning(f"Arquivo '{arquivo_pesos}' nao encontrado. Operando com confianca padrao.")
