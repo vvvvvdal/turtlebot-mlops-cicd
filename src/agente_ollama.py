@@ -35,15 +35,15 @@ def decidir_movimento(distancia_obstaculo):
             }
         )
         decisao = response['message']['content'].strip().upper()
-        logger.info(f"Resposta crua do modelo: {decisao}") # As vezes ele pode responder com frases como "Decisão: PARAR" ou "Decisão: AVANCAR", por isso precisamos fazer o tratamento abaixo.
+        logger.info(f"Resposta crua do Ollama: {decisao}") # As vezes ele pode responder com frases como "Decisão: PARAR" ou "Decisão: AVANCAR", por isso precisamos fazer o tratamento abaixo.
         
         if "PARAR" in decisao: decisao = "PARAR"
         elif "AVANCAR" in decisao: decisao = "AVANCAR"
         
-        logger.info(f"Decisao da IA Local: {decisao}")
+        logger.info(f"Decisao do Ollama: {decisao}")
         return decisao
     except Exception as e:
-        logger.error(f"Erro no Ollama local: {e}")
+        logger.error(f"Erro no Ollama: {e}")
         return "PARAR" # Em caso de erro, por seguranca, o robo para
 
 if __name__ == "__main__":
