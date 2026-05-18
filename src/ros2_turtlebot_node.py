@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import LaserScan
+from turtlesim.msg import Pose
 from geometry_msgs.msg import Twist
 import threading
 import time
@@ -10,31 +10,35 @@ import math
 from agente_ollama import decidir_movimento
 from visao_mock import detectar_obstaculo
 
-VELOCIDADE_PADRAO = 0.15
+POSICAO_MIN = 0.0
+POSICAO_MAX = 11.0
+
+VELOCIDADE_PADRAO = 1.0
+VELOCIDADE_GIRO = 0.8
 VELOCIDADE_NULA = 0.0
 
-class MLOpsTurtlebotNode(Node):
+class TurtlebotNode(Node):
     def __init__(self):
-        super().__init__('mlops_turtlebot_node')
+        super().__init__('turtlebot_node')
         
-        self.get_logger().info('Iniciando no ROS 2 de MLOps para o Turtlebot...')
+        self.get_logger().info('Iniciando no ROS 2 para o Turtlebot...')
         
         # Publisher para os motores do robo
-        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.cmd_vel_pub = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
         
-        # Subscriber para o LiDAR (sensor de distancia)
-        self.scan_sub = self.create_subscription(LaserScan, '/scan', self.scan_callback, 10)
+        # Subscriber para o Turtlesim (simulando sensor de distancia)
+        self.pose_sub = self.create_subscription(Pose, '/turtle1/pose', self.pose_callback, 10)
         
         # Variaveis de estado
         self.distancia_frente = 10.0  # Comeca com um valor seguro
         self.comando_atual = "PARAR"  # Comeca parado, por seguranca
         
         # Cria a imagem falsa para a visao se nao existir
-        self.caminho_imagem = "data/obstaculo.jpg"
+        self.caminho_imagem = "data/imagem_teste.jpg"
         if not os.path.exists(self.caminho_imagem):
             os.makedirs("data", exist_ok=True)
             with open(self.caminho_imagem, "w") as f:
-                f.write("imagem_fake")
+                f.write("imagem_teste.jpg")
                 
         # Thread separada para consultar a IA e Visao sem travar o loop de controle do ROS 2
         self.ia_thread = threading.Thread(target=self.loop_de_decisao_ia)
@@ -42,33 +46,24 @@ class MLOpsTurtlebotNode(Node):
         self.ia_thread.start()
         
         # Timer para enviar os comandos de velocidade continuamente (10Hz)
-        self.create_timer(0.1, self.publish_velocity)
+        self.create_timer(0.1, self.publish_velocidade)
 
-    def scan_callback(self, msg):
-        """ Callback do LiDAR: Pega a distancia dos obstaculos bem a frente do robo """
-        ranges = msg.ranges
-        num_leituras = len(ranges)
+    def pose_callback(self, msg):
+        """ Callback do Turtlesim: Simula o LiDAR calculando a distância para as paredes do mapa (11x11) """
+        x = msg.x
+        y = msg.y
+        theta = msg.theta
         
-        if num_leituras == 0:
-            return
+        distancias = []
+        # O mapa do Turtlesim vai de 0 a 11 em x e y
+        if math.cos(theta) > 0.001: distancias.append((POSICAO_MAX - x) / math.cos(theta))
+        elif math.cos(theta) < -0.001: distancias.append((POSICAO_MIN - x) / math.cos(theta))
             
-        # Pega as leituras na frente (cone de 30 graus: 15 graus pra cada lado do indice 0)
-        ang_index_esq = 15
-        ang_index_dir = num_leituras - 15
-        
-        frente_ranges = []
-        for i in range(ang_index_esq):
-            if not math.isinf(ranges[i]) and not math.isnan(ranges[i]) and ranges[i] > 0.0:
-                frente_ranges.append(ranges[i])
-                
-        for i in range(ang_index_dir, num_leituras):
-            if not math.isinf(ranges[i]) and not math.isnan(ranges[i]) and ranges[i] > 0.0:
-                frente_ranges.append(ranges[i])
-                
-        if frente_ranges:
-            self.distancia_frente = min(frente_ranges)
-        else:
-            self.distancia_frente = 10.0 # Sem obstaculo
+        if math.sin(theta) > 0.001: distancias.append((POSICAO_MAX - y) / math.sin(theta))
+        elif math.sin(theta) < -0.001: distancias.append((POSICAO_MIN - y) / math.sin(theta))
+            
+        if distancias: self.distancia_frente = min(distancias)
+        else: self.distancia_frente = 10.0
             
     def loop_de_decisao_ia(self):
         """ Rodando loop a cada 3 segundos """
@@ -97,22 +92,23 @@ class MLOpsTurtlebotNode(Node):
                 
             time.sleep(3.0)
 
-    def publish_velocity(self):
+    def publish_velocidade(self):
         """ Publica a velocidade de fato nos motores """
         twist = Twist()
         
         if self.comando_atual == "AVANCAR":
-            twist.linear.x = VELOCIDADE_PADRAO # 15 cm/s
+            twist.linear.x = VELOCIDADE_PADRAO # 1.0 m/s
             twist.angular.z = VELOCIDADE_NULA
         else:
             twist.linear.x = VELOCIDADE_NULA
-            twist.angular.z = VELOCIDADE_NULA
+            # Gira o robo para mudar de direcao quando encontra a parede
+            twist.angular.z = VELOCIDADE_GIRO # 0.8 rad/s
             
         self.cmd_vel_pub.publish(twist)
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MLOpsTurtlebotNode()
+    node = TurtlebotNode()
     
     try:
         rclpy.spin(node)

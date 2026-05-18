@@ -1,53 +1,51 @@
 import ollama
-import logging
 
-DISTANCIA_PERTO = 0.5
-DISTANCIA_SEGURA = 1.0
+# Distancia 0 = obstaculo na proxima celula (PERIGOSO)
+# Distancia > 0 = tem pelo menos uma celula livre (SEGURO)
+DISTANCIA_PAREDE = 0
 
-# Configuracoes do modelo
-INSTRUCAO_SISTEMA = "Você é um robô. Regra de Segurança: Se a distância for MAIOR que 100 centímetros, responda APENAS 'AVANCAR'. Se a distância for MENOR OU IGUAL a 100 centímetros, responda APENAS 'PARAR'."
-CONFIG_MODELO = {
-    "temperature": 0.0,
-    "top_p": 1.0,
-}
+INSTRUCAO_SISTEMA = (
+    "You are a Turtlebot safety system. "
+    "You must respond with ONLY one word. "
+    "If the situation is DANGEROUS, answer: PARAR. "
+    "If the situation is SAFE, answer: AVANCAR. "
+    "Never explain. Never add other words. Just one word."
+)
 
-# Logs do Ollama
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - [Ollama] - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+def decidir_movimento(distancia):
 
-def decidir_movimento(distancia_obstaculo):
-    """
-    Recebe a distancia do sensor LiDAR e consulta o Ollama para decidir a acao.
-    """
-    logger.info(f"Leitura do LiDAR: Obstaculo detectado a {distancia_obstaculo}m.")
-    estado_risco = "PERIGOSA" if distancia_obstaculo <= DISTANCIA_SEGURA else "SEGURA" # 1.0 metro
-    prompt_completo = f"Situação: {estado_risco}.\nRegra: Se a situação for PERIGOSA, responda PARAR. Se for SEGURA, responda AVANCAR.\nDecisão:"
-    
+    if distancia <= DISTANCIA_PAREDE: situacao = "DANGEROUS"
+    else: situacao = "SAFE"
+
+    prompt = f"Current situation: {situacao}. What is your decision?"
+
+    print(f"[Ollama] Distancia: {distancia} celulas. Situacao: {situacao}")
+
     try:
-        response = ollama.chat(
-            model='qwen2.5:1.5b',
+        resposta = ollama.chat(
+            model="qwen2.5:1.5b",
             messages=[
-                {'role': 'user', 'content': prompt_completo}
+                {"role": "system", "content": INSTRUCAO_SISTEMA},
+                {"role": "user", "content": prompt}
             ],
-            options={
-                'temperature': CONFIG_MODELO.get("temperature", 0.1), # Temperatura baixa p evitar criatividade/alucinações
-                'top_p': CONFIG_MODELO.get("top_p", 1.0)
-            }
+            options={"temperature": 0.0}
         )
-        decisao = response['message']['content'].strip().upper()
-        logger.info(f"Resposta crua do Ollama: {decisao}") # As vezes ele pode responder com frases como "Decisão: PARAR" ou "Decisão: AVANCAR", por isso precisamos fazer o tratamento abaixo.
-        
-        if "PARAR" in decisao: decisao = "PARAR"
-        elif "AVANCAR" in decisao: decisao = "AVANCAR"
-        
-        logger.info(f"Decisao do Ollama: {decisao}")
-        return decisao
-    except Exception as e:
-        logger.error(f"Erro no Ollama: {e}")
-        return "PARAR" # Em caso de erro, por seguranca, o robo para
+        texto = resposta["message"]["content"].strip().upper()
+        print(f"[Ollama] resposta: {texto}")
+
+        # procura pela palavra de decisao na resposta
+        if "PARAR" in texto: return "PARAR"
+        elif "AVANCAR" in texto: return "AVANCAR"
+        else:
+            print("[Ollama] resposta inesperada, assumindo PARAR por seguranca")
+            return "PARAR"
+
+    except Exception as erro:
+        print(f"[Ollama] erro: {erro}")
+        return "PARAR"  # Se der erro, para por seguranca
+
 
 if __name__ == "__main__":
-    # Teste rapido manual
-    print("Testando Turtlebot autonomo:")
-    distancia = DISTANCIA_PERTO # Simulando obstaculo perto (0.5 metros)
-    print(f"Decisao final para {distancia}m: {decidir_movimento(distancia)}")
+    print("Testando o agente Ollama...")
+    print("Com obstaculo (0 celulas):", decidir_movimento(0))
+    print("Sem obstaculo (3 celulas):", decidir_movimento(3))

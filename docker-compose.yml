@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama_server
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  turtlesim:
+    image: osrf/ros:humble-desktop
+    container_name: turtlesim_gui
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - ROS_DOMAIN_ID=0
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    command: ros2 run turtlesim turtlesim_node
+
+  turtlebot_agent:
+    build: .
+    container_name: turtlebot_agent
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - ROS_DOMAIN_ID=0
+    volumes:
+      - .:/app
+    depends_on:
+      - ollama
+      - turtlesim
+    command: python3 turtlesim_navegacao.py
+
+volumes:
+  ollama_data:

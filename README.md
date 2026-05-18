@@ -21,6 +21,21 @@ pip install -r requirements.txt
 pytest tests/ -v --log-cli-level=INFO
 ```
 
+### Testando no Turtlesim com Ollama (navegação autônoma):
+1. Inicie o Turtlesim (Terminal 1):
+```bash
+ros2 run turtlesim turtlesim_node
+```
+
+2. Rode a navegação com um peso de modelo (Terminal 2):
+```bash
+# Peso bom (peso >= 8): Aprovado
+python3 src/turtlesim_navegacao.py 10
+
+# Peso ruim (peso < 8): Reprovado
+python3 src/turtlesim_navegacao.py 3
+```
+
 ### Testando na simulação visual com HTML:
 1. Abra o arquivo `simulacao_mapa.html` no seu navegador:
 ```bash
