@@ -2,35 +2,64 @@ name: Turtlebot (MLOps - CI/CD)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  teste_seguranca_agente:
+  teste_navegacao_turtlesim:
     runs-on: ubuntu-latest
 
+    # Roda tudo dentro da imagem oficial do ROS 2 Humble
+    container:
+      image: osrf/ros:humble-desktop
+      options: --shm-size=512m
+
+    # Ollama sobe como serviço paralelo, acessível via hostname "ollama"
+    services:
+      ollama:
+        image: ollama/ollama
+        ports:
+          - 11434:11434
+
+    env:
+      DISPLAY: :99
+      OLLAMA_HOST: http://ollama:11434
+      PYTHONPATH: src
+
     steps:
-    - name: 1. Baixar o codigo do repositorio
-      uses: actions/checkout@v4
+      - name: 1. Baixar o código do repositório
+        uses: actions/checkout@v4
 
-    - name: 2. Configurar o Python no servidor
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - name: 2. Instalar Xvfb e dependências Python
+        run: |
+          apt-get update -q
+          apt-get install -y -q xvfb python3-pip
+          pip3 install --quiet ollama opencv-python-headless
 
-    - name: 3. Instalar dependencias (Ollama, Pytest, etc.)
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: 3. Iniciar display virtual (Xvfb)
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 1
 
-    - name: 4. Instalar e Iniciar o Ollama
-      run: |
-        curl -fsSL https://ollama.com/install.sh | sh
-        ollama serve &
-        sleep 5
-        ollama pull qwen2.5:1.5b
+      - name: 4. Aguardar Ollama e fazer pull do modelo
+        run: |
+          echo "Aguardando Ollama ficar pronto..."
+          for i in $(seq 1 15); do
+            curl -sf http://ollama:11434/api/tags && break
+            sleep 2
+          done
+          OLLAMA_HOST=http://ollama:11434 ollama pull qwen2.5:1.5b
 
-    - name: 5. Executar testes de seguranca (visao e Ollama)
-      env:
-        PYTHONPATH: src
-      run: |
-        pytest tests/ -v --log-cli-level=INFO
+      - name: 5. Iniciar turtlesim em background
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          ros2 launch src/turtlesim_navegacao.py &
+          sleep 4
+
+      - name: 6. Executar navegação autônoma (CI/CD gate)
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          python3 src/turtlesim_navegacao.py
+        # sys.exit(0) = aprovado. pipeline verde
+        # sys.exit(1) = reprovado. pipeline vermelho e bloqueia deploy

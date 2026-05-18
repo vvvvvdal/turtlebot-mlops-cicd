@@ -20,3 +20,8 @@ MAPA = [
 # Posição inicial do robô e da chegada (coluna, linha)
 INICIO = (1, 4)
 CHEGADA = (9, 3)
+
+
+# Tamanho da janela do turtlesim
+JANELA_LARGURA = 800
+JANELA_ALTURA = 800
