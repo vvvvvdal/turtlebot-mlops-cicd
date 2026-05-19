@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ollama_local
+    ports:
+      - "11434:11434"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    volumes:
+      - ollama_models:/root/.ollama
+
+  ros_agent:
+    build: .
+    container_name: ros_turtlesim
+    tty: true
+    command: tail -f /dev/null
+    depends_on:
+      - ollama
+    environment:
+      - DISPLAY=${DISPLAY}
+      - OLLAMA_HOST=http://ollama:11434
+      - QT_X11_NO_MITSHM=1
+      - ROS_DOMAIN_ID=0
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - .:/ros_workspace
+
+volumes:
+  ollama_models:
