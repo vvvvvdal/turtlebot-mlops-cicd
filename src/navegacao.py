@@ -8,9 +8,8 @@ from turtlesim.srv import TeleportAbsolute, SetPen
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Twist
 
-from turtlesim_constantes import MAPA, INICIO, CHEGADA
-from mapa_utils import grade_para_mundo, pode_ir, lidar, bfs, imprimir_mapa
-from agente_ollama import decidir_movimento
+from mapa import MAPA, INICIO, CHEGADA, grade_para_mundo, pode_ir, lidar, bfs, imprimir_mapa
+from ollama_agente import decidir_movimento
 
 
 class NavegacaoTurtlesim(Node):
@@ -84,9 +83,6 @@ class NavegacaoTurtlesim(Node):
         angulo = math.atan2(dy_mundo - cy, dx_mundo - cx)
         self.chamar_teleport(dx_mundo, dy_mundo, angulo)
 
-    # ------------------------------------------------------------------
-    # Lógica de navegação
-    # ------------------------------------------------------------------
 
     def _modelo_alucinando(self):
         """Retorna True se o modelo degradado decide ignorar o BFS neste passo."""
@@ -112,7 +108,7 @@ class NavegacaoTurtlesim(Node):
 
             proximo = bfs(self.col_atual, self.lin_atual, CHEGADA[0], CHEGADA[1])
             if proximo is None:
-                print("Sem caminho disponível.")
+                print("Sem caminho disponivel.")
                 return False
 
             pc, pl = proximo
@@ -121,14 +117,14 @@ class NavegacaoTurtlesim(Node):
             alucinando = self._modelo_alucinando()
             if alucinando:
                 pc, pl, dx, dy = self.col_atual + 1, self.lin_atual, 1, 0
-                print("[Modelo Degradado] ignorando BFS, tentando ir direto para a direita...")
+                print("[OLLAMA] alucinacao. ignorando BFS, tentando ir direto para a direita...")
 
             dist = lidar(self.col_atual, self.lin_atual, dx, dy)
             decisao = decidir_movimento(float(dist))
 
             if alucinando and decisao == "PARAR":
                 decisao = "AVANCAR"
-                print("[ALUCINAÇÃO] modelo corrompido ignorou o PARAR do Ollama!")
+                print("[OLLAMA] alucinacao. modelo corrompido ignorou o PARAR")
 
             print(f"[Passo {passos:02d}] pos=({self.col_atual},{self.lin_atual}) lidar={dist} -> Ollama: {decisao}")
 
@@ -137,14 +133,14 @@ class NavegacaoTurtlesim(Node):
                     self.col_atual, self.lin_atual = pc, pl
                     self.mover_robo(self.col_atual, self.lin_atual)
                 else:
-                    print(f"[ALUCINAÇÃO] modelo mandou AVANCAR mas há obstáculo em ({pc},{pl})!")
+                    print(f"[OLLAMA] alucinacao. modelo mandou AVANCAR mas ha obstaculo em ({pc},{pl}).")
                     self._reprovar(f"Bateu na parede.", passos)
                     self.chamar_set_pen(255, 0, 0, 6, desligada=False)
                     cx, cy = grade_para_mundo(pc, pl)
                     self.chamar_teleport(cx, cy, 0.0)
                     return False
             else:
-                print("[Info] Ollama mandou PARAR. Tentando outra direção...")
+                print("[INFO] Ollama mandou PARAR. Tentando outra direção...")
                 desviou = False
                 for tdx, tdy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
                     nc, nl = self.col_atual + tdx, self.lin_atual + tdy
@@ -154,7 +150,7 @@ class NavegacaoTurtlesim(Node):
                         desviou = True
                         break
                 if not desviou:
-                    print("[Info] Sem alternativa, robô parado.")
+                    print("[INFO] Sem alternativa, robo parado.")
 
             imprimir_mapa(self.col_atual, self.lin_atual)
             time.sleep(0.3)
@@ -164,5 +160,5 @@ class NavegacaoTurtlesim(Node):
                 print(f"Chegou no fim com {passos} passos. Peso {self.peso}. Deploy Liberado\n")
                 return True
 
-        self._reprovar("Passou de 80 passos e não chegou no fim.", passos)
+        self._reprovar("Chegou em 80 passos e não chegou no fim.", passos)
         return False

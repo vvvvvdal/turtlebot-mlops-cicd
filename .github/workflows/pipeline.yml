@@ -53,13 +53,13 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/humble/setup.bash
-          ros2 launch src/turtlesim_navegacao.py &
+          ros2 launch src/turtlesim_teste.py &
           sleep 4
 
       - name: 6. Executar navegação autônoma (CI/CD gate)
         shell: bash
         run: |
           source /opt/ros/humble/setup.bash
-          python3 src/turtlesim_navegacao.py
+          python3 src/turtlesim_teste.py
         # sys.exit(0) = aprovado. pipeline verde
         # sys.exit(1) = reprovado. pipeline vermelho e bloqueia deploy

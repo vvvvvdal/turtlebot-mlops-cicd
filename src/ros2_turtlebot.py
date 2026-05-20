@@ -7,7 +7,9 @@ import time
 import os
 import math
 
-from agente_ollama import decidir_movimento
+os.environ["QT_LOGGING_RULES"] = "*.warning=false"
+
+from ollama_agente import decidir_movimento
 from visao_mock import detectar_obstaculo
 
 POSICAO_MIN = 0.0

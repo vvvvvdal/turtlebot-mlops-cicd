@@ -1,10 +1,35 @@
-from turtlesim_constantes import TAMANHO_CELULA, COLUNAS, LINHAS, MAPA
+# Tamanho de cada célula no mundo do turtlesim (em unidades)
+TAMANHO_CELULA = 1
 
+# O turtlesim vai de 0 a 11 em x e y
+# Grade com 11 colunas e 7 linhas
+COLUNAS = 11
+LINHAS = 7
+
+# 0 = livre, 1 = parede, 2 = obstáculo, 3 = chegada
+MAPA = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 2, 0, 2, 0, 2, 0, 0, 1],
+    [1, 0, 0, 2, 0, 2, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 2, 0, 2, 0, 0, 1],
+    [1, 0, 0, 2, 0, 2, 0, 2, 0, 3, 1],
+    [1, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+]
+
+# Posição inicial do robô e da chegada (coluna, linha)
+INICIO = (1, 4)
+CHEGADA = (9, 4)
+
+
+# Tamanho da janela do turtlesim
+JANELA_LARGURA = 800
+JANELA_ALTURA = 800
 
 def grade_para_mundo(col, lin):
     """Converte posição da grade para coordenada do turtlesim."""
-    x = 1.0 + col * TAMANHO_CELULA + TAMANHO_CELULA / 2
-    y = 1.0 + lin * TAMANHO_CELULA + TAMANHO_CELULA / 2
+    x = col * TAMANHO_CELULA + TAMANHO_CELULA / 2
+    y = (LINHAS - 1 - lin) * TAMANHO_CELULA + TAMANHO_CELULA / 2
     return x, y
 
 
@@ -58,10 +83,9 @@ def bfs(col_inicio, lin_inicio, col_fim, lin_fim):
 
 
 def imprimir_mapa(col_robo, lin_robo):
-    """Imprime o mapa no terminal com o robô marcado."""
     simbolos = {1: "###", 2: " X ", 3: " G ", 0: " . "}
     print()
-    for lin in range(LINHAS):
+    for lin in range(LINHAS - 1, -1, -1):
         linha_txt = ""
         for col in range(COLUNAS):
             if col == col_robo and lin == lin_robo:

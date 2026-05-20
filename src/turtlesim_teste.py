@@ -5,8 +5,8 @@ import rclpy
 
 from geometry_msgs.msg import Twist
 
-from navegacao_node import NavegacaoTurtlesim
-from turtlesim_constantes import JANELA_ALTURA, JANELA_LARGURA
+from navegacao import NavegacaoTurtlesim
+from mapa import JANELA_ALTURA, JANELA_LARGURA
 
 def iniciar_turtlesim():
     return subprocess.Popen([
@@ -30,7 +30,6 @@ def pedir_peso():
         pass  # arquivo não existe, cai no input abaixo
 
     # Lendo o peso via terminal
-    print("Rode o turtlesim em outro terminal: ros2 run turtlesim turtlesim_node\n")
     while True:
         entrada = input("Digite o peso do modelo (de 1 a 10): ")
         try:
@@ -43,6 +42,7 @@ def pedir_peso():
 
 
 def main():
+    print(f"\n<\>| Bem vindo a simulação CI/CD com Turtlebot |<\>\n")
     peso = pedir_peso()
 
     print(f"\nIniciando Turtlebot com peso: {peso}")
@@ -59,12 +59,19 @@ def main():
         time.sleep(0.5)
         aprovado = node.navegar()
     except KeyboardInterrupt:
-        print("Interrompido pelo usuário.")
+        print("Interrompido pelo usuario.")
     finally:
         node.pub_vel.publish(Twist())
         node.destroy_node()
         rclpy.shutdown()
+
+        print("\nFeche a janela do Turtlesim para encerrar...")
+
+    if os.getenv("CI"):  # pro Github Actions encerrar
         processo_turtlesim.terminate()
+    else:
+        print("\nFeche a janela do Turtlesim para encerrar...")
+        processo_turtlesim.wait()
 
     sys.exit(0 if aprovado else 1)
 
