@@ -17,29 +17,21 @@ def iniciar_turtlesim():
         "-p", f"height:={JANELA_ALTURA}",
     ])
 
-def pedir_peso():
-    # Lendo o peso do arquivo peso.txt (usado no CI/CD)
-    try:
-        with open("models/peso.txt") as f:
-            conteudo = f.read().strip()
-        peso = int(conteudo)
-        if not 1 <= peso <= 10:
-            raise ValueError(f"Peso fora do intervalo de 1 a 10: {peso}")
-        print(f"Peso lido de models/peso.txt: {peso}")
-        return peso
-    except FileNotFoundError:
-        pass  # arquivo não existe, cai no input abaixo
 
-    # Lendo o peso via terminal
+def pedir_peso():
+    if os.getenv("CI"):
+        peso = int(os.getenv("PESO_MODELO", "10"))
+        print(f"Ambiente CI detectado. Peso lido do peso.txt: {peso}")
+        return peso
+
     while True:
-        entrada = input("Digite o peso do modelo (de 1 a 10): ")
         try:
-            peso = int(entrada)
+            peso = int(input("Digite o peso do modelo (de 1 a 10): "))
             if 1 <= peso <= 10:
                 return peso
             print("O valor deve estar entre 1 e 10. Tente novamente.\n")
         except ValueError:
-            print("Entrada invalida. Você precisa digitar um numero inteiro de 1 a 10.\n")
+            print("Entrada invalida. Digite um numero inteiro.\n")
 
 
 def main():

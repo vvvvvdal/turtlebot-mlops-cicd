@@ -8,12 +8,10 @@ jobs:
   teste_navegacao_turtlesim:
     runs-on: ubuntu-latest
 
-    # Roda tudo dentro da imagem oficial do ROS 2 Humble
     container:
       image: osrf/ros:humble-desktop
       options: --shm-size=512m
 
-    # Ollama sobe como serviço paralelo, acessível via hostname "ollama"
     services:
       ollama:
         image: ollama/ollama
@@ -29,18 +27,24 @@ jobs:
       - name: 1. Baixar o código do repositório
         uses: actions/checkout@v4
 
-      - name: 2. Instalar Xvfb e dependências Python
+      - name: 2. Ler peso do modelo do arquivo peso.txt
+        run: |
+          PESO=$(cat peso.txt | tr -d '[:space:]')
+          echo "Peso lido: $PESO"
+          echo "PESO_MODELO=$PESO" >> $GITHUB_ENV
+
+      - name: 3. Instalar Xvfb e dependências Python
         run: |
           apt-get update -q
           apt-get install -y -q xvfb python3-pip
           pip3 install --quiet ollama opencv-python-headless
 
-      - name: 3. Iniciar display virtual (Xvfb)
+      - name: 4. Iniciar display virtual (Xvfb)
         run: |
           Xvfb :99 -screen 0 1024x768x24 &
           sleep 1
 
-      - name: 4. Aguardar Ollama e fazer pull do modelo
+      - name: 5. Aguardar Ollama e fazer pull do modelo
         run: |
           echo "Aguardando Ollama ficar pronto..."
           for i in $(seq 1 15); do
@@ -53,13 +57,6 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"name": "qwen2.5:1.5b"}' \
             --no-buffer
-
-      - name: 5. Iniciar turtlesim em background
-        shell: bash
-        run: |
-          source /opt/ros/humble/setup.bash
-          ros2 launch src/turtlesim_teste.py &
-          sleep 4
 
       - name: 6. Executar navegação autônoma (CI/CD gate)
         shell: bash
