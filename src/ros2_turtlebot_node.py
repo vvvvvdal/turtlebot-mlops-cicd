@@ -14,8 +14,8 @@ POSICAO_MIN = 0.0
 POSICAO_MAX = 11.0
 
 VELOCIDADE_PADRAO = 1.0
-VELOCIDADE_GIRO = 0.8
 VELOCIDADE_NULA = 0.0
+VELOCIDADE_GIRO = 0.8
 
 class TurtlebotNode(Node):
     def __init__(self):
