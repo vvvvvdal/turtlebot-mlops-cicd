@@ -47,7 +47,12 @@ jobs:
             curl -sf http://ollama:11434/api/tags && break
             sleep 2
           done
-          OLLAMA_HOST=http://ollama:11434 ollama pull qwen2.5:1.5b
+
+          echo "Fazendo pull do modelo..."
+          curl -X POST http://ollama:11434/api/pull \
+            -H "Content-Type: application/json" \
+            -d '{"name": "qwen2.5:1.5b"}' \
+            --no-buffer
 
       - name: 5. Iniciar turtlesim em background
         shell: bash
