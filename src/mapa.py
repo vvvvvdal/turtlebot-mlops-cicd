@@ -83,13 +83,13 @@ def bfs(col_inicio, lin_inicio, col_fim, lin_fim):
 
 
 def imprimir_mapa(col_robo, lin_robo):
-    simbolos = {1: "###", 2: " X ", 3: " G ", 0: " . "}
+    simbolos = {1: "###", 2: " X ", 3: " C ", 0: " . "}
     print()
     for lin in range(LINHAS - 1, -1, -1):
         linha_txt = ""
         for col in range(COLUNAS):
             if col == col_robo and lin == lin_robo:
-                linha_txt += " R "
+                linha_txt += " T "
             else:
                 linha_txt += simbolos[MAPA[lin][col]]
         print(linha_txt)

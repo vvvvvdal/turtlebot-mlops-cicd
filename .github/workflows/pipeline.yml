@@ -1,5 +1,6 @@
 name: Turtlebot (MLOps - CI/CD)
 
+# Dispara o pipeline a cada push na branch main
 on:
   push:
     branches: [main]
@@ -8,20 +9,23 @@ jobs:
   teste_navegacao_turtlesim:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write # Necessário para o CI Bot fazer git push no step 7 (CD)
+
     container:
-      image: osrf/ros:humble-desktop
-      options: --shm-size=512m
+      image: osrf/ros:humble-desktop # Roda todos os steps dentro da imagem oficial do ROS 2 Humble
+      options: --shm-size=512m       # --shm-size=512m evita crashes de memória compartilhada do turtlesim
 
     services:
       ollama:
-        image: ollama/ollama
-        ports:
+        image: ollama/ollama # Ollama sobe como serviço paralelo acessível via hostname "ollama"
+        ports:               # O modelo de IA roda localmente, sem depender de APIs externas
           - 11434:11434
 
     env:
-      DISPLAY: :99
-      OLLAMA_HOST: http://ollama:11434
-      PYTHONPATH: src
+      DISPLAY: :99                      # Display virtual para o turtlesim renderizar
+      OLLAMA_HOST: http://ollama:11434  # Aponta o cliente Ollama para o serviço paralelo
+      PYTHONPATH: src                   # Permite imports diretos dos módulos em src/
 
     steps:
       - name: 1. Baixar o código do repositório
@@ -29,30 +33,36 @@ jobs:
 
       - name: 2. Ler peso do modelo do arquivo peso.txt
         run: |
+          # peso.txt controla a qualidade do modelo: >= 8 passa, < 8 reprova
           PESO=$(cat peso.txt | tr -d '[:space:]')
           echo "Peso lido: $PESO"
+          # Exporta o peso como variável de ambiente para o Python ler via os.getenv()
           echo "PESO_MODELO=$PESO" >> $GITHUB_ENV
 
       - name: 3. Instalar Xvfb e dependências Python
         run: |
           apt-get update -q
+          # Xvfb cria um display virtual para o turtlesim abrir sem monitor físico
           apt-get install -y -q xvfb python3-pip
-          pip3 install --quiet ollama opencv-python-headless
+          pip3 install --quiet ollama
 
       - name: 4. Iniciar display virtual (Xvfb)
         run: |
+          # Sobe o display virtual em background na porta :99
           Xvfb :99 -screen 0 1024x768x24 &
           sleep 1
 
       - name: 5. Aguardar Ollama e fazer pull do modelo
         run: |
           echo "Aguardando Ollama ficar pronto..."
+          # Tenta conectar ao Ollama por até 30 segundos (15 tentativas x 2s)
           for i in $(seq 1 15); do
             curl -sf http://ollama:11434/api/tags && break
             sleep 2
           done
 
           echo "Fazendo pull do modelo..."
+          # Baixa o modelo via API HTTP (CLI ollama não está disponível no container ROS)
           curl -X POST http://ollama:11434/api/pull \
             -H "Content-Type: application/json" \
             -d '{"name": "qwen2.5:1.5b"}' \
@@ -62,6 +72,23 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/humble/setup.bash
+          # Gate de CI: o robô navega pelo mapa com o agente de IA tomando decisões
+          # sys.exit(0) = chegou ao destino sem colidir  -> pipeline verde, step 7 executa
+          # sys.exit(1) = colidiu ou alucionou           -> pipeline vermelho, deploy bloqueado
           python3 src/turtlesim_teste.py
-        # sys.exit(0) = aprovado. pipeline verde
-        # sys.exit(1) = reprovado. pipeline vermelho e bloqueia deploy
+
+      - name: 7. CD — Aprovar modelo para deploy físico
+        # Só executa se o step 6 retornou exit code 0 (navegação aprovada)
+        if: success()
+        run: |
+          # Registra o deploy aprovado com timestamp e peso no log de auditoria
+          echo "Modelo aprovado em $(date)" >> deployments.log
+          echo "peso=$(cat peso.txt)" >> deployments.log
+
+          git config user.email "ci@github.com"
+          git config user.name "CI Bot"
+          # Usa o token automático do GitHub Actions para autenticar o push
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git add deployments.log
+          git commit -m "Peso $(cat peso.txt). Modelo aprovado. Deploy liberado para o robô físico."
+          git push

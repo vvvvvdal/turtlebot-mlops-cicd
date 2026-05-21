@@ -1,0 +1,9 @@
+.git
+.github
+__pycache__
+*.pyc
+*.md
+tests/
+models/
+simulacao_mapa.html
+peso.txt

@@ -26,6 +26,8 @@ def pedir_peso():
 
     while True:
         try:
+            print("\nPeso ruim: 1 a 7")
+            print("Peso bom: 8 a 10\n")
             peso = int(input("Digite o peso do modelo (de 1 a 10): "))
             if 1 <= peso <= 10:
                 return peso
@@ -57,8 +59,6 @@ def main():
         node.pub_vel.publish(Twist())
         node.destroy_node()
         rclpy.shutdown()
-
-        print("\nFeche a janela do Turtlesim para encerrar...")
 
     if os.getenv("CI"):  # pro Github Actions encerrar
         processo_turtlesim.terminate()
