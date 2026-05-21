@@ -13,7 +13,7 @@ from ollama_agente import decidir_movimento
 
 
 class NavegacaoTurtlesim(Node):
-    def __init__(self, peso):
+    def __init__(self, peso: int) -> None:
         super().__init__("navegacao_turtlesim")
         self.peso = peso
 
@@ -29,22 +29,22 @@ class NavegacaoTurtlesim(Node):
         print("Turtlesim pronto!")
 
 
-    def chamar_teleport(self, x, y, angulo=0.0):
+    def chamar_teleport(self, x: float, y: float, angulo=0.0) -> None:
         req = TeleportAbsolute.Request()
         req.x, req.y, req.theta = float(x), float(y), float(angulo)
         rclpy.spin_until_future_complete(self, self.teleport.call_async(req), timeout_sec=3.0)
 
-    def chamar_set_pen(self, r, g, b, largura, desligada=False):
+    def chamar_set_pen(self, r: int, g: int, b: int, largura: int, desligada: bool = False) -> None:
         req = SetPen.Request()
         req.r, req.g, req.b = int(r), int(g), int(b)
         req.width, req.off = int(largura), int(desligada)
         rclpy.spin_until_future_complete(self, self.set_pen.call_async(req), timeout_sec=3.0)
 
-    def chamar_clear(self):
+    def chamar_clear(self) -> None:
         rclpy.spin_until_future_complete(self, self.clear.call_async(Empty.Request()), timeout_sec=3.0)
 
 
-    def desenhar_mapa(self):
+    def desenhar_mapa(self) -> None:
         print("Desenhando o mapa no turtlesim...")
         self.chamar_clear()
         time.sleep(0.2)
@@ -75,27 +75,27 @@ class NavegacaoTurtlesim(Node):
         ix, iy = grade_para_mundo(*INICIO)
         self.chamar_teleport(ix, iy, 0.0)
         self.chamar_set_pen(0, 160, 255, 3, desligada=False)
-        print("Mapa desenhado!")
+        print("Mapa desenhado.")
 
-    def mover_robo(self, col_destino, lin_destino):
+    def mover_robo(self, col_destino: int, lin_destino: int) -> None:
         cx, cy = grade_para_mundo(self.col_atual, self.lin_atual)
         dx_mundo, dy_mundo = grade_para_mundo(col_destino, lin_destino)
         angulo = math.atan2(dy_mundo - cy, dx_mundo - cx)
         self.chamar_teleport(dx_mundo, dy_mundo, angulo)
 
 
-    def _modelo_alucinando(self):
+    def modelo_alucinando(self):
         """Retorna True se o modelo degradado decide ignorar o BFS neste passo."""
         if self.peso >= 8:
             return False
         taxa_erro = 0.55 + (7 - min(self.peso, 7)) / 7 * 0.4
         return random.random() < taxa_erro
 
-    def _reprovar(self, motivo, passos):
+    def reprovar(self, motivo: str, passos: int) -> None:
         print(f"\nTESTE REPROVADO")
         print(f"{motivo} Passo {passos}. Peso {self.peso}. Deploy bloqueado\n")
 
-    def navegar(self):
+    def navegar(self) -> bool:
         self.col_atual, self.lin_atual = INICIO
         passos = 0
 
@@ -114,13 +114,13 @@ class NavegacaoTurtlesim(Node):
             pc, pl = proximo
             dx, dy = pc - self.col_atual, pl - self.lin_atual
 
-            alucinando = self._modelo_alucinando()
+            alucinando = self.modelo_alucinando()
             if alucinando:
                 pc, pl, dx, dy = self.col_atual + 1, self.lin_atual, 1, 0
                 print("[OLLAMA] alucinacao. ignorando BFS, tentando ir direto para a direita...")
 
             dist = lidar(self.col_atual, self.lin_atual, dx, dy)
-            decisao = decidir_movimento(float(dist))
+            decisao = decidir_movimento(dist)
 
             if alucinando and decisao == "PARAR":
                 decisao = "AVANCAR"
@@ -134,7 +134,7 @@ class NavegacaoTurtlesim(Node):
                     self.mover_robo(self.col_atual, self.lin_atual)
                 else:
                     print(f"[OLLAMA] alucinacao. modelo mandou AVANCAR mas ha obstaculo em ({pc},{pl}).")
-                    self._reprovar(f"Bateu na parede.", passos)
+                    self.reprovar(f"Bateu na parede.", passos)
                     self.chamar_set_pen(255, 0, 0, 6, desligada=False)
                     cx, cy = grade_para_mundo(pc, pl)
                     self.chamar_teleport(cx, cy, 0.0)
@@ -160,5 +160,5 @@ class NavegacaoTurtlesim(Node):
                 print(f"Chegou no fim com {passos} passos. Peso {self.peso}. Deploy Liberado\n")
                 return True
 
-        self._reprovar("Chegou em 80 passos e não chegou no fim.", passos)
+        self.reprovar("Chegou em 80 passos e não chegou no fim.", passos)
         return False

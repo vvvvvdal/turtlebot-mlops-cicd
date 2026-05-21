@@ -26,21 +26,21 @@ CHEGADA = (9, 4)
 JANELA_LARGURA = 800
 JANELA_ALTURA = 800
 
-def grade_para_mundo(col, lin):
+def grade_para_mundo(col: int, lin: int) -> tuple[float, float]:
     """Converte posição da grade para coordenada do turtlesim."""
     x = col * TAMANHO_CELULA + TAMANHO_CELULA / 2
     y = (LINHAS - 1 - lin) * TAMANHO_CELULA + TAMANHO_CELULA / 2
     return x, y
 
 
-def pode_ir(col, lin):
+def pode_ir(col: int, lin: int) -> bool:
     """Verifica se é possível mover para uma célula."""
     if col < 0 or col >= COLUNAS or lin < 0 or lin >= LINHAS:
         return False
     return MAPA[lin][col] == 0 or MAPA[lin][col] == 3
 
 
-def lidar(col, lin, dx, dy):
+def lidar(col: int, lin: int, dx: int, dy: int) -> int:
     """Conta quantas células livres existem à frente do robô (LiDAR simulado)."""
     dist = 0
     nx, ny = col + dx, lin + dy
@@ -54,7 +54,7 @@ def lidar(col, lin, dx, dy):
         ny += dy
 
 
-def bfs(col_inicio, lin_inicio, col_fim, lin_fim):
+def bfs(col_inicio: int, lin_inicio: int, col_fim: int, lin_fim: int) -> tuple[int, int] | None:
     """
     Encontra o próximo passo no caminho até a chegada usando BFS.
     Retorna apenas o próximo passo (col, lin), ou None se não houver caminho.
@@ -81,11 +81,11 @@ def bfs(col_inicio, lin_inicio, col_fim, lin_fim):
 
     return None
 
-
-def imprimir_mapa(col_robo, lin_robo):
+def imprimir_mapa(col_robo: int, lin_robo: int) -> None:
+    """Imprime o mapa no terminal espelhando a orientação visual do turtlesim."""
     simbolos = {1: "###", 2: " X ", 3: " C ", 0: " . "}
     print()
-    for lin in range(LINHAS - 1, -1, -1):
+    for lin in range(LINHAS):  # 0 → 6, igual ao turtlesim (lin=0 no topo)
         linha_txt = ""
         for col in range(COLUNAS):
             if col == col_robo and lin == lin_robo:

@@ -79,13 +79,13 @@ O mapa é uma grade 11x7 com paredes, obstáculos e um ponto de chegada. O robô
 * `.` = Caminho livre
 
 ```text
-                  #######################
-                  # . . X . X . X . . . #
-                  # . . X . X . . . . . #
-                  # . . . . X . X . . . #
-robô sai daqui →  # T . X . X . X . . C #  ← e tem que chegar aqui
-                  # . . X . . . X . . . #
-                  #######################
+                  ###########################
+                  ### . . X . X . X . . . ###
+                  ### . . X . X . . . . . ###
+                  ### . . . . X . X . . . ###
+robô sai daqui →  ### T . X . X . X . . C ###  ← e tem que chegar aqui
+                  ### . . X . . . X . . . ###
+                  ###########################
 ```
 
 A cada passo:
@@ -206,5 +206,5 @@ python3 src/turtlesim_teste.py
 
 O terminal vai solicitar o peso do modelo (1 a 10):
 
-- ✅ **Aprovado:** Digite `>= 8`. O robô navega desviando dos obstáculos e o deploy é liberado.
-- ❌ **Reprovado:** Digite `< 8`. O modelo alucina, ignora o LiDAR e colide. O deploy é bloqueado.
+- ✅ **Teste aprovado:** Digite um peso `>= 8`. O modelo se comportará bem, evitará os obstáculos usando as leituras do LiDAR simulado, e o deploy será liberado.
+- ❌ **Teste reprovado:** Digite um peso `< 8`. O prompt corrompido faz a IA alucinar, ignorar os obstáculos e colidir. O deploy é bloqueado.

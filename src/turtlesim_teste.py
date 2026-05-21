@@ -18,7 +18,7 @@ def iniciar_turtlesim():
     ])
 
 
-def pedir_peso():
+def pedir_peso() -> int:
     if os.getenv("CI"):
         peso = int(os.getenv("PESO_MODELO", "10"))
         print(f"Ambiente CI detectado. Peso lido do peso.txt: {peso}")
