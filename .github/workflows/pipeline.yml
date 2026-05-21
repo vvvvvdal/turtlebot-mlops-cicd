@@ -77,7 +77,7 @@ jobs:
           # sys.exit(1) = colidiu ou alucionou           -> pipeline vermelho, deploy bloqueado
           python3 src/turtlesim_teste.py
 
-      - name: 7. CD — Aprovar modelo para deploy físico
+      - name: 7. CD:Aprovar modelo para deploy físico
         # Só executa se o step 6 retornou exit code 0 (navegação aprovada)
         if: success()
         run: |
