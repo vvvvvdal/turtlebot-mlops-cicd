@@ -26,7 +26,7 @@ class NavegacaoTurtlesim(Node):
         self.teleport.wait_for_service(timeout_sec=10.0)
         self.set_pen.wait_for_service(timeout_sec=10.0)
         self.clear.wait_for_service(timeout_sec=10.0)
-        print("Turtlesim pronto!")
+        print("Turtlesim pronto.")
 
 
     def chamar_teleport(self, x: float, y: float, angulo=0.0) -> None:
@@ -99,7 +99,7 @@ class NavegacaoTurtlesim(Node):
         self.col_atual, self.lin_atual = INICIO
         passos = 0
 
-        print(f"\nIniciando navegação! Peso: {self.peso}")
+        print(f"\nIniciando navegação. Peso: {self.peso}")
         print(f"Início: {INICIO} -> Chegada: {CHEGADA}\n")
         imprimir_mapa(self.col_atual, self.lin_atual)
 
