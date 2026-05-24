@@ -1,4 +1,5 @@
 import ollama
+import functools
 
 # Distancia 0 = obstaculo na proxima celula (PERIGOSO)
 # Distancia > 0 = tem pelo menos uma celula livre (SEGURO)
@@ -12,6 +13,7 @@ INSTRUCAO_SISTEMA = (
     "Never explain. Never add other words. Just one word."
 )
 
+@functools.lru_cache(maxsize=128)
 def decidir_movimento(distancia: int) -> str:
 
     if distancia <= DISTANCIA_PAREDE: situacao = "DANGEROUS"
