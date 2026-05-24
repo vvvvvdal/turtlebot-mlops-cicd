@@ -26,8 +26,6 @@ jobs:
         image: ollama/ollama
         ports:
           - 11434:11434
-        volumes:
-          - ${{ github.workspace }}/.ollama:/root/.ollama
 
     env:
       # Display virtual para o turtlesim renderizar
@@ -51,13 +49,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Cache modelos do Ollama
-        uses: actions/cache@v4
-        with:
-          path: .ollama
-          key: ${{ runner.os }}-ollama-qwen2.5-1.5b
-          restore-keys: |
-            ${{ runner.os }}-ollama-
 
       - name: 2. Ler peso do modelo do arquivo peso.txt
         run: |
