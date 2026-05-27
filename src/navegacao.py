@@ -88,7 +88,10 @@ class NavegacaoTurtlesim(Node):
         """Retorna True se o modelo degradado decide ignorar o BFS neste passo."""
         if self.peso >= 8:
             return False
+        
+        # peso >= 8: 0% de erro; peso = 7: 55% erro; peso = 4: 72% erro; peso = 1: 89% erro.
         taxa_erro = 0.55 + (7 - min(self.peso, 7)) / 7 * 0.4
+        
         return random.random() < taxa_erro
 
     def reprovar(self, motivo: str, passos: int) -> None:
