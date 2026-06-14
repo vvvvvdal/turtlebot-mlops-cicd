@@ -5,7 +5,7 @@
 ![CI/CD](https://img.shields.io/github/actions/workflow/status/vvvvvdal/turtlebot-mlops-cicd/pipeline.yml?label=CI%2FCD%20Pipeline)
 
 ---
-## ⚙️ Como funciona o CI/CD para Robótica Autônoma
+## Como funciona o CI/CD para Robótica Autônoma
 
 ### O problema
 
@@ -99,7 +99,7 @@ A cada passo:
 - O teste tem limite de 80 passos. Se o robô travar e não chegar ao destino dentro desse limite, o pipeline também reprova.
 ---
 
-## 🐳 Como testar via Docker (Recomendado)
+## Como testar via Docker (Recomendado)
 
 O projeto depende do ROS 2 Humble, do Turtlesim e do Ollama rodando juntos. Instalar tudo isso diretamente no sistema operacional é trabalhoso e pode gerar conflitos de dependências. Por isso, o ambiente completo está empacotado via Docker Compose: um comando sobe tudo isolado, sem sujar sua máquina.
 
@@ -143,7 +143,7 @@ docker compose down
 
 ---
 
-## 💻 Como testar localmente
+## Como testar localmente
 
 > **Pré-requisitos:** ROS 2 Humble, Python 3.10+ e Ollama instalados.
 
